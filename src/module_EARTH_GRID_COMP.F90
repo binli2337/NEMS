@@ -71,6 +71,9 @@
 #ifdef FRONT_DATM
       use FRONT_DATM,       only: DATM_SS  => SetServices
 #endif
+#ifdef FRONT_CDEPS_DATM
+      use FRONT_CDEPS_DATM,       only: DATM_SS  => SetServices
+#endif
   ! - Handle build time OCN options:
 #ifdef FRONT_SOCN
       use FRONT_SOCN,       only: SOCN_SS   => SetServices
@@ -3597,7 +3600,7 @@
             return  ! bail out
 #endif
           elseif (trim(model) == "datm") then
-#ifdef FRONT_DATM
+#if defined FRONT_DATM || defined FRONT_CDEPS_DATM
             call NUOPC_DriverAddComp(driver, trim(prefix), DATM_SS, &
               petList=petList, comp=comp, rc=rc)
             if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -3968,6 +3971,19 @@
           call NUOPC_FreeFormatDestroy(attrFF, rc=rc)
           if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
             line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+#ifdef FRONT_CDEPS_DATM
+          ! read and ingest free format component attributes
+          attrFF = NUOPC_FreeFormatCreate(config, &
+            label=trim(prefix)//"_modelio::", relaxedflag=.true., rc=rc)
+          if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+          call NUOPC_CompAttributeIngest(comp, attrFF, addFlag=.true., rc=rc)
+          if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+          call NUOPC_FreeFormatDestroy(attrFF, rc=rc)
+          if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+#endif
           
           ! clean-up
           deallocate(petList)
