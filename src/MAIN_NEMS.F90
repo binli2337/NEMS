@@ -60,6 +60,13 @@
        USE module_NEMS_UTILS, ONLY: check_esmf_pet, err_msg, message_check
 !
 !-----------------------------------------------------------------------
+!***  This module contains PIO subroutines.
+!
+#ifdef S2S
+       USE shr_pio_mod, ONLY: shr_pio_init1
+#endif
+!
+!-----------------------------------------------------------------------
 !***  This module calculates resource usage across all ranks.
 !-----------------------------------------------------------------------
 !
@@ -118,6 +125,7 @@
 !
       CHARACTER(LEN=MPI_MAX_PROCESSOR_NAME) :: PROCNAME                    !<-- The processor(host) name
       INTEGER :: PROCNAME_LEN                                              !<-- Actual PROCRNAME string length
+      INTEGER :: COMM_WORLD                                                !<-- Copy of MPI_COMM_WORLD
 !
 !-----------------------------------------------------------------------
 !***********************************************************************
@@ -189,6 +197,14 @@
       call rusage%start(MPI_COMM_WORLD,PROCNAME,PROCNAME_LEN,RC)
       ! It is safe to ignore RC since rusage%is_valid will tell us if
       ! the start succeeded.
+!
+!-----------------------------------------------------------------------
+!***  Initialize PIO for 8 components:
+!
+#ifdef S2S
+      COMM_WORLD = MPI_COMM_WORLD
+      call shr_pio_init1(8, "pio_in", COMM_WORLD)
+#endif
 !
 !-----------------------------------------------------------------------
 !***  Set up the default log.

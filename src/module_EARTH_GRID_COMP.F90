@@ -72,7 +72,7 @@
       use FRONT_DATM,       only: DATM_SS  => SetServices
 #endif
 #ifdef FRONT_CDEPS_DATM
-      use FRONT_CDEPS_DATM,       only: DATM_SS  => SetServices
+      use FRONT_CDEPS_DATM, only: DATM_SS  => SetServices
 #endif
   ! - Handle build time OCN options:
 #ifdef FRONT_SOCN
@@ -3378,6 +3378,10 @@
 #ifdef CMEPS
         use med_internalstate_mod , only : med_id
 #endif
+#ifdef FRONT_CDEPS_DATM
+        use mpi, only : MPI_COMM_NULL
+        use shr_pio_mod, only : shr_pio_init2 
+#endif
         type(ESMF_GridComp)  :: driver
         integer, intent(out) :: rc
 
@@ -3400,6 +3404,13 @@
         character(ESMF_MAXSTR)          :: cvalue
         character(len=5)                :: inst_suffix
         logical                         :: isPresent
+#endif
+#ifdef FRONT_CDEPS_DATM
+        integer, allocatable            :: comms(:), comps(:)
+        integer, allocatable            :: comp_comm_iam(:)
+        logical, allocatable            :: comp_iamin(:)
+        type(ESMF_VM) :: vm
+        integer :: Global_Comm
 #endif
         rc = ESMF_SUCCESS
 
@@ -3487,9 +3498,22 @@
         if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
 #endif
+#ifdef FRONT_CDEPS_DATM
+        ! allocate arrays required for PIO initialization (phase 2)
+        if (.not. allocated(comms)) allocate(comms(componentCount+1))
+        if (.not. allocated(comps)) allocate(comps(componentCount+1))
+        if (.not. allocated(comp_iamin)) allocate(comp_iamin(componentCount))
+        if (.not. allocated(comp_comm_iam)) allocate(comp_comm_iam(componentCount))
+
+        comps(1) = 1
+        comms(1) = Global_Comm
+#endif
 
         ! determine information for each component and add to the driver
         do i=1, componentCount
+#ifdef FRONT_CDEPS_DATM
+          comps(i+1) = i+1
+#endif
           ! construct component prefix
           prefix=trim(compLabels(i))
           ! read in petList bounds
@@ -3998,6 +4022,22 @@
         if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
 #endif          
+#ifdef FRONT_CDEPS_DATM
+        if (ESMF_GridCompIsPetLocal(comp, rc=rc)) then
+          call ESMF_GridCompGet(comp, vm=vm, rc=rc)
+          if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+
+          call ESMF_VMGet(vm, mpiCommunicator=comms(i+1), localPet=comp_comm_iam(i), rc=rc)
+          if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+            line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+
+          comp_iamin(i) = .true.
+        else
+          comms(i+1) = MPI_COMM_NULL
+          comp_iamin(i) = .false.
+        end if
+#endif          
         enddo
 
 #if ESMF_VERSION_MAJOR < 8
@@ -4006,6 +4046,11 @@
         call SetFromConfig(driver, mode="setServicesConnectors", rc=rc)
         if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
           line=__LINE__, file=trim(name)//":"//__FILE__)) return  ! bail out
+#endif
+
+#ifdef FRONT_CDEPS_DATM
+        ! Initialize PIO
+        call shr_pio_init2(comps(2:), compLabels, comp_iamin, comms(2:), comp_comm_iam)
 #endif
 
         ! clean-up
