@@ -62,7 +62,7 @@
 !-----------------------------------------------------------------------
 !***  This module contains PIO subroutines.
 !
-#ifdef S2S
+#ifdef CMEPS
        USE shr_pio_mod, ONLY: shr_pio_init1
 #endif
 !
@@ -201,7 +201,7 @@
 !-----------------------------------------------------------------------
 !***  Initialize PIO for 8 components:
 !
-#ifdef S2S
+#ifdef CMEPS
       COMM_WORLD = MPI_COMM_WORLD
       call shr_pio_init1(8, "pio_in", COMM_WORLD)
 #endif
