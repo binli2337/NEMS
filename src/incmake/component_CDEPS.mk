@@ -3,7 +3,7 @@ cdeps_mk = $(ROOTDIR)/CDEPS/CDEPS_INSTALL/cdeps.mk
 all_component_mk_files+=$(cdeps_mk)
 
 # Need this because cmeps_mk is not available at this level
-cmeps_mk = $(ROOTDIR)/CMEPS/CMEPS_INSTALL/cmeps.mk 
+cmeps_mk = $(ROOTDIR)/CMEPS_INSTALL/cmeps.mk 
 
 # Location of source code and installation
 CDEPS_SRCDIR?=$(ROOTDIR)/CDEPS
