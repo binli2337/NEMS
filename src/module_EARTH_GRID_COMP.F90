@@ -3622,7 +3622,7 @@
               file=__FILE__, rcToReturn=rc)
             return  ! bail out
 #endif
-          elseif (trim(model) == "datm") then
+          elseif (trim(model) == "datm" .or. trim(model) == "datm_cfsr" ) then
 #if defined FRONT_DATM || defined FRONT_CDEPS_DATM
             call NUOPC_DriverAddComp(driver, trim(prefix), DATM_SS, &
               petList=petList, comp=comp, rc=rc)
