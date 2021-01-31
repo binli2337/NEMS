@@ -10,6 +10,8 @@ CICE_BINDIR?=$(ROOTDIR)/CICE-interface/CICE_INSTALL
 # NEMS_GRID was found in CICE and defaults to a low-res GSM grid
 # This is obsolete and perhaps should be removed.
 NEMS_GRID?=T126_mx5
+MACHINE_ID?=orion
+
 
 # Make sure the expected directories exist and are non-empty:
 $(call require_dir,$(CICE_SRCDIR),CICE source directory)
