@@ -58,6 +58,9 @@
 !-----------------------------------------------------------------------
 !
        USE module_NEMS_UTILS, ONLY: check_esmf_pet, err_msg, message_check
+#ifdef CMEPS
+       USE shr_pio_mod, ONLY: shr_pio_init1
+#endif
 !
 !-----------------------------------------------------------------------
 !***  This module calculates resource usage across all ranks.
@@ -189,6 +192,11 @@
       call rusage%start(MPI_COMM_WORLD,PROCNAME,PROCNAME_LEN,RC)
       ! It is safe to ignore RC since rusage%is_valid will tell us if
       ! the start succeeded.
+
+fdef CMEPS
+      COMM_WORLD = MPI_COMM_WORLD
+      call shr_pio_init1(8, "pio_in", COMM_WORLD)
+#endif
 !
 !-----------------------------------------------------------------------
 !***  Set up the default log.
