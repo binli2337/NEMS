@@ -193,7 +193,7 @@
       ! It is safe to ignore RC since rusage%is_valid will tell us if
       ! the start succeeded.
 
-fdef CMEPS
+#ifdef CMEPS
       COMM_WORLD = MPI_COMM_WORLD
       call shr_pio_init1(8, "pio_in", COMM_WORLD)
 #endif
