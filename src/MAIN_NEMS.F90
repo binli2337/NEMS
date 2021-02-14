@@ -121,6 +121,7 @@
 !
       CHARACTER(LEN=MPI_MAX_PROCESSOR_NAME) :: PROCNAME                    !<-- The processor(host) name
       INTEGER :: PROCNAME_LEN                                              !<-- Actual PROCRNAME string length
+      INTEGER :: COMM_WORLD
 !
 !-----------------------------------------------------------------------
 !***********************************************************************
